@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Sokoban Game</title>
+
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    html,
+    body {
+      background: #111;
+      margin: 0;
+      padding: 0;
+      overflow: auto;
+      font-family: Arial, sans-serif;
+    }
+
+    #topBar {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 10px;
+    }
+
+    #levelTitle {
+      color: #eee;
+      margin: 0;
+      font-size: 22px;
+    }
+
+    #restartBtn {
+      background: #333;
+      color: #eee;
+      padding: 8px 15px;
+      border: 1px solid #555;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    #restartBtn:hover {
+      background: #444;
+    }
+  </style>
+</head>
+
+<body onload="window.focus()">
+
+  <div id="topBar">
+    <h2 id="levelTitle">Загрузка уровня...</h2>
+
+    <!-- 🔥 КНОПКА ПЕРЕЗАПУСКА -->
+    <button id="restartBtn" onclick="restartLevel()">Перезапуск уровня</button>
+  </div>
+
+  <div id="field"></div>
+
+  <!-- победный звук -->
+  <audio id="winSound" src="da-jeto-zhestko.mp3"></audio>
+
+  <script src="script.js"></script>
+
+  <!-- функция перезапуска -->
+  <script>
+    function restartLevel() {
+      // просто перезагружаем game.html с тем же level параметром
+      location.reload();
+    }
+  </script>
+
+</body>
+
+</html>

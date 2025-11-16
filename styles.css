@@ -1,0 +1,69 @@
+body {
+  background: #111;
+  color: #eee;
+  font-family: Arial, sans-serif;
+}
+
+#field {
+  display: grid;
+  margin-top: 20px;
+}
+
+.cell {
+  width: 50px;
+  height: 50px;
+  background: #222;
+  border: 1px solid #333;
+}
+
+.wall {
+  background-image: url("img/wall.png");
+  background-size: cover;
+}
+
+.stone {
+  background-image: url("img/stone.png");
+  background-size: cover;
+}
+
+.player {
+  background-image: url("img/player.png");
+  background-size: cover;
+}
+
+.target {
+  box-shadow: inset 0 0 0 5px rgba(255, 215, 0, 0.7);
+  background-color: #333;
+}
+
+.target.stone {
+  box-shadow: inset 0 0 0 5px rgba(0, 255, 0, 0.9);
+}
+
+#menu {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  /* <- вертикально */
+  gap: 8px;
+  /* расстояние между кнопками */
+  width: 150px;
+  /* чтобы меню было аккуратным столбиком */
+}
+
+.level-btn {
+  background: #333;
+  border: 1px solid #666;
+  color: white;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  width: 100%;
+  /* <- растягиваем по ширине меню */
+  text-align: left;
+  /* красиво выглядит */
+}
+
+.level-btn:hover {
+  background: #555;
+}
