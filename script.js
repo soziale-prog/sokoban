@@ -1,17 +1,21 @@
+// --- ПОЛЯ И ЭЛЕМЕНТЫ ---
 const field = document.getElementById("field");
-const title = document.getElementById("levelTitle");
+const levelTitle = document.getElementById("levelTitle");
+const winSound = document.getElementById("winSound");
 
+// --- ПЕРЕМЕННЫЕ ИГРЫ ---
 let map = [];
-let px = 0, py = 0;
+let px = 0;   // позиция игрока X
+let py = 0;   // позиция игрока Y
 let gameWon = false;
 
-// --- читаем номер уровня из URL ---
+// --- ЧТЕНИЕ НОМЕРА УРОВНЯ ИЗ URL ---
 const params = new URLSearchParams(location.search);
 const levelNum = Number(params.get("level")) || 1;
 
-title.textContent = "Уровень " + levelNum;
+levelTitle.textContent = "Уровень " + levelNum;
 
-// загрузка файла .lvl
+// --- ЗАГРУЗКА УРОВНЯ .LVL ---
 fetch("levels/level" + levelNum + ".lvl")
   .then(r => r.json())
   .then(level => {
@@ -19,15 +23,28 @@ fetch("levels/level" + levelNum + ".lvl")
     findPlayerStart();
     setGridSize();
     draw();
+  })
+  .catch(err => {
+    console.error("Ошибка загрузки уровня:", err);
+    levelTitle.textContent = "Ошибка загрузки уровня!";
   });
 
-// динамический размер поля
+
+// ----------------------------------------------------------------------
+//  УСТАНОВКА РАЗМЕРА ПОЛЯ ПОД РАЗМЕРЫ КАРТЫ
+// ----------------------------------------------------------------------
 function setGridSize() {
-  field.style.gridTemplateColumns = `repeat(${map[0].length}, 50px)`;
-  field.style.gridTemplateRows = `repeat(${map.length}, 50px)`;
+  const rows = map.length;
+  const cols = map[0].length;
+
+  field.style.gridTemplateColumns = `repeat(${cols}, 50px)`;
+  field.style.gridTemplateRows = `repeat(${rows}, 50px)`;
 }
 
-// поиск игрока (код 5 или 6)
+
+// ----------------------------------------------------------------------
+//  ПОИСК ИГРОКА В КАРТЕ (КОДЫ 5 и 6)
+// ----------------------------------------------------------------------
 function findPlayerStart() {
   for (let y = 0; y < map.length; y++) {
     for (let x = 0; x < map[0].length; x++) {
@@ -35,17 +52,27 @@ function findPlayerStart() {
       if (map[y][x] === 5 || map[y][x] === 6) {
         px = x;
         py = y;
+
+        // игрок не должен оставаться в карте
         map[y][x] = (map[y][x] === 6) ? 3 : 0;
+        return;
       }
     }
   }
 }
 
+
+// ----------------------------------------------------------------------
+//  ФЛАГИ
+// ----------------------------------------------------------------------
 function isWall(v) { return v === 1; }
 function hasStone(v) { return v === 2 || v === 4; }
 function isTarget(v) { return v === 3 || v === 4; }
 
-// отрисовка карты
+
+// ----------------------------------------------------------------------
+//  ПРОРИСОВКА КАРТЫ
+// ----------------------------------------------------------------------
 function draw() {
   field.innerHTML = "";
 
@@ -67,56 +94,86 @@ function draw() {
   }
 }
 
-// победа
+
+// ----------------------------------------------------------------------
+//  ПРОВЕРКА ПОБЕДЫ
+// ----------------------------------------------------------------------
 function checkWin() {
-  return !map.some(row => row.includes(3));
+  for (let y = 0; y < map.length; y++) {
+    for (let x = 0; x < map[0].length; x++) {
+      if (map[y][x] === 3) return false;
+    }
+  }
+  return true;
 }
 
-// управление
-document.addEventListener("keydown", e => {
+
+// ----------------------------------------------------------------------
+//  УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ДВИЖЕНИЯ
+// ----------------------------------------------------------------------
+function handleMove(direction) {
   if (gameWon) return;
 
   let dx = 0, dy = 0;
-  if (e.key === "ArrowLeft") dx = -1;
-  if (e.key === "ArrowRight") dx = 1;
-  if (e.key === "ArrowUp") dy = -1;
-  if (e.key === "ArrowDown") dy = 1;
 
-  if (!dx && !dy) return;
+  if (direction === "ArrowLeft") dx = -1;
+  if (direction === "ArrowRight") dx = 1;
+  if (direction === "ArrowUp") dy = -1;
+  if (direction === "ArrowDown") dy = 1;
 
-  const nx = px + dx;
+  if (dx === 0 && dy === 0) return;
+
+  const nx = px + dx;   // новая позиция игрока
   const ny = py + dy;
 
+  // Столкновение со стеной
   if (isWall(map[ny][nx])) return;
 
-  // толкаем камень
+  // Если там камень — пытаемся толкнуть
   if (hasStone(map[ny][nx])) {
-    const sx = nx + dx, sy = ny + dy;
+    const sx = nx + dx;
+    const sy = ny + dy;
 
+    // Не можем толкнуть если впереди стена или камень
     if (isWall(map[sy][sx]) || hasStone(map[sy][sx])) return;
 
+    // Убираем камень со старого места
     map[ny][nx] = (map[ny][nx] === 4) ? 3 : 0;
+
+    // Ставим камень на новое место
     map[sy][sx] = (map[sy][sx] === 3) ? 4 : 2;
   }
 
+  // Двигаем игрока
   px = nx;
   py = ny;
 
   draw();
 
+  // Проверяем победу
   if (checkWin()) {
     gameWon = true;
 
-    // проигрываем звук победы
-    const winSound = document.getElementById("winSound");
     winSound.currentTime = 0;
-    winSound.play().catch(() => {
-      // ВНИМАНИЕ:
-      // браузер может запретить autoplay без клика,
-      // но т.к. игрок уже нажал клавишу — звук разрешён
-    });
+    winSound.play().catch(() => { });
 
     setTimeout(() => alert("Победа!"), 200);
   }
+}
 
+
+// ----------------------------------------------------------------------
+//  УПРАВЛЕНИЕ С КЛАВИАТУРЫ
+// ----------------------------------------------------------------------
+document.addEventListener("keydown", (e) => {
+  handleMove(e.key);
 });
+
+
+// ----------------------------------------------------------------------
+//  УПРАВЛЕНИЕ С МОБИЛЬНЫХ КНОПОК
+// ----------------------------------------------------------------------
+function moveLeft() { handleMove("ArrowLeft"); }
+function moveRight() { handleMove("ArrowRight"); }
+function moveUp() { handleMove("ArrowUp"); }
+function moveDown() { handleMove("ArrowDown"); }
